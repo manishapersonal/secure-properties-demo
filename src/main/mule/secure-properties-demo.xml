@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e6380738-3057-44ba-b6c7-f10c90ccd58e" >
+		<http:listener-connection host="0.0.0.0" port="${secure::http.port}" />
+	</http:listener-config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="4c41886d-377b-4356-b0e4-f43879268371" file="${mule.env}-config.yaml" key="${encryption.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<flow name="secure-properties-demoFlow" doc:id="7c7fc69f-ffeb-4ac5-b837-a325dc587fd5" >
+		<http:listener doc:name="Listener" doc:id="da6c6bed-6019-441f-a069-e8a28d04ba28" config-ref="HTTP_Listener_config" path="/secureProperiesDemo"/>
+		<logger level="INFO" doc:name="Logger" doc:id="9d2e8710-b40e-456f-ad06-46976359360b" message="inside #[flow.name]"/>
+		<ee:transform doc:name="Transform Message" doc:id="3beed160-a6ae-4f68-80f6-876787bfcee2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	username: p('secure::http.username'),
+	decrypted_password : p('secure::http.password'),
+	message: "BlowFish Algoritham used to decrypt the password"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
